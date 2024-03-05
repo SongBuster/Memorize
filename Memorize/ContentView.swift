@@ -8,63 +8,69 @@
 import SwiftUI
 
 struct ContentView: View {
-    let emojis = ["👻","🎃","😈","🕷️","🤣","👎🏼","🤷‍♂️","🥶","👷🏻","🐅","🥐","🥨"]
     
-    @State var cardCount : Int = 4
+    let vehicles = (Color.gray,["🚗","🚌","🚜","🛵","✈️","🚊","🚁","⛵️","🚲","🛴"])
+    let nature = (Color.green,["🎄","🍁","🐳","🌸","🌊","☘️","🪵","🌈"])
+    let flags = (Color.red,["🇦🇹","🇧🇷","🇨🇦","🇨🇳","🇰🇷","🇪🇸","🇮🇳","🇮🇹","🇯🇵","🇳🇴","🇵🇪"])
+    
+    @State var emojis : Array<String> = []
+    @State var color : Color = Color.red
     
     var body: some View {
         VStack {
+            Text("Memorize!")
+                .font(.title)
             ScrollView {
                 cards
             }
             Spacer()
-            cardCountAdjusters
+            themeButtons
         }
         .padding()
     }
-    
-    var cardCountAdjusters : some View {
-        HStack {
-            cardRemover
-            Spacer()
-            cardAdder
+        
+    var themeButtons : some View {
+        HStack(alignment: .lastTextBaseline) {
+            createThemeButton(of: vehicles, withLabel: "Vehicles", andIcon: "car")
+            createThemeButton(of: nature, withLabel: "Nature", andIcon: "tree")
+            createThemeButton(of: flags, withLabel: "Flags", andIcon: "flag")
         }
-        .imageScale(.large)
-        .font(.largeTitle)
     }
     
-    func cardCountAdjuster(by offset: Int, symbol: String) -> some View {
-        Button( action: {
-            cardCount += offset
-        }, label: {
-            Image(systemName: symbol)
-        })
-        .disabled(cardCount + offset < 1 || cardCount + offset > emojis.count)
-    }
-    
-    var cardRemover : some View {
-        cardCountAdjuster(by: -1, symbol: "rectangle.stack.badge.minus.fill")
-    }
-    
-    var cardAdder : some View {
-        cardCountAdjuster(by: +1, symbol: "rectangle.stack.badge.plus.fill")
+    func createThemeButton(of collection: (Color, Array<String>), withLabel label: String, andIcon image: String) -> some View{
+            Button(action: {
+                let numberOfCards = collection.1.count
+                let numberOfPairs = Int.random(in: 2...numberOfCards)
+                print(numberOfPairs)
+                let randomCollection = collection.1[0...numberOfPairs-1]
+                let newCollection = randomCollection + randomCollection
+                emojis = newCollection.shuffled()
+                color = collection.0
+            }, label: {
+                VStack {
+                    Image(systemName: image)
+                        .imageScale(.large)
+                    Text(label)
+                        .font(.footnote)
+                }.padding()
+            })
     }
     
     var cards : some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 120))]) {
-            ForEach(0..<cardCount, id:\.self) { index in
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 60.0))]) {
+            ForEach(0..<emojis.count, id:\.self) { index in
                 CardView(content: emojis[index])
                     .aspectRatio(2/3, contentMode: .fit)
             }
             
         }
-        .foregroundColor(.orange)
+        .foregroundColor(color)
     }
 }
 
 struct CardView: View {
     let content : String
-    @State var isFaceUp = true
+    @State var isFaceUp = false
     
     var body: some View {
         ZStack {
